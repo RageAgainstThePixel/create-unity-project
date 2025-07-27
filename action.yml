@@ -24,7 +24,7 @@ runs:
     - name: Get Unity Template
       id: template
       shell: bash
-      run: ./get-unity-template.sh "${{ inputs.template-name }}"
+      run: ${{ github.action_path }}/get-unity-template.sh "${{ inputs.template-name }}"
     - uses: RageAgainstThePixel/unity-action@v2
       name: Create Unity Project
       with:
