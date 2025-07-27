@@ -35,9 +35,9 @@ steps:
 
 | name | description | required |
 | ---- | ----------- | -------- |
-| project-name | The name of the Unity project to create. | true |
-| project-directory | The directory where the Unity project will be created.  | Defaults to the root of the workspace. |
-| template-name | The name of the template package to use for creating the Unity project. | Default: `com.unity.template.3d(-cross-platform)?` |
+| `project-name` | The name of the Unity project to create. | true |
+| `project-directory` | The directory where the Unity project will be created.  | Defaults to the root of the workspace. |
+| `template-name` | The name of the template package to use for creating the Unity project. | Default: `com.unity.template.3d(-cross-platform)?` |
 
 > [!NOTE]
 > `template-name` supports regex patterns, allowing you to match multiple template packages. For example, `com.unity.template.3d(-cross-platform)?` will match both `com.unity.template.3d` and `com.unity.template.3d-cross-platform`.
