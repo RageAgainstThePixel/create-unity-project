@@ -4,7 +4,7 @@ A GitHub Action to create a new Unity Project using a predefined template packag
 
 ## How to use
 
-## Requirements
+### Requirements
 
 > [!IMPORTANT]
 > This action requires that the Unity Editor is installed on the runner.
