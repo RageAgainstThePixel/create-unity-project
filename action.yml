@@ -30,4 +30,4 @@ runs:
       name: Create Unity Project
       with:
         log-name: create-unity-project
-        args: '-quit -nographics -batchmode -createProject "${{ inputs.project-directory }}/${{ inputs.project-name }}" -cloneFromTemplate "${{ steps.template.outputs.TEMPLATE_PATH }}"'
+        args: '-quit -nographics -batchmode -createProject "${{ inputs.project-directory }}/${{ inputs.project-name }}" -cloneFromTemplate "${{ steps.template.outputs.template-path }}"'
