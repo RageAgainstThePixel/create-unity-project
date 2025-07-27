@@ -6,7 +6,7 @@ A GitHub Action to create a new Unity Project using a predefined template packag
 
 ## Requirements
 
-> ![IMPORTANT] This action requires that the Unity Editor is installed on the runner.
+> [!IMPORTANT] This action requires that the Unity Editor is installed on the runner.
 > You can use `unity-setup` action to install Unity Editor before using this action.
 > `UNITY_EDITOR_PATH` environment variable must be set to the path of the Unity Editor executable.
 
@@ -32,7 +32,7 @@ steps:
 | project-directory | The directory where the Unity project will be created.  | Defaults to the root of the workspace. |
 | template-name | The name of the template package to use for creating the Unity project. | Default: 'com.unity.template.3d(-cross-platform)?' |
 
-> ![NOTE] `template-name` supports regex patterns, allowing you to match multiple template packages. For example, `com.unity.template.3d(-cross-platform)?` will match both `com.unity.template.3d` and `com.unity.template.3d-cross-platform`.
+> [!NOTE] `template-name` supports regex patterns, allowing you to match multiple template packages. For example, `com.unity.template.3d(-cross-platform)?` will match both `com.unity.template.3d` and `com.unity.template.3d-cross-platform`.
 
 ### outputs
 
