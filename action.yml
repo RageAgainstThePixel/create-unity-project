@@ -10,6 +10,7 @@ inputs:
   project-directory:
     description: The directory where the Unity project will be created. Defaults to the root of the workspace.
     required: false
+    default: '${{ github.workspace }}'
   template-name:
     description: The name of the template package to use for creating the Unity project.
     required: false
