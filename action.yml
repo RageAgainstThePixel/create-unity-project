@@ -27,7 +27,8 @@ runs:
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
-      run: ${ACTION_PATH}/get-unity-template.sh "${{ inputs.template-name }}"
+        TEMPLATE_NAME: ${{ inputs.template-name }}
+      run: '"${ACTION_PATH}/get-unity-template.sh" "${TEMPLATE_NAME}"'
     - uses: RageAgainstThePixel/unity-action@v2
       name: Create Unity Project
       with:
