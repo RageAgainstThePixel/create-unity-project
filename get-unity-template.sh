@@ -19,7 +19,7 @@ if [ -z "$PACKAGE" ]; then
 fi
 
 EDITOR_ROOT=$(dirname "${UNITY_EDITOR_PATH}")
-EDITOR_ROOT=${EDITOR_ROOT//\\//\/}
+EDITOR_ROOT=${EDITOR_ROOT//\\/\/}
 TEMPLATE_DIR="${EDITOR_ROOT}/Data/Resources/PackageManager/ProjectTemplates"
 OS_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
 
@@ -51,7 +51,7 @@ if [ -z "${TEMPLATE_PATH}" ]; then
     exit 1
 fi
 
-TEMPLATE_PATH=${TEMPLATE_PATH//\\//\/}
+TEMPLATE_PATH=${TEMPLATE_PATH//\\/\/}
 
 echo "TEMPLATE_PATH=${TEMPLATE_PATH}"
 echo "template-path=${TEMPLATE_PATH}" >> "${GITHUB_OUTPUT}"
