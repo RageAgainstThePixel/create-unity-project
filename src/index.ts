@@ -36,10 +36,7 @@ async function main() {
 
         const args: string[] = [
             `-logFile`, logPath,
-            '-automated',
             '-quit',
-            '-nographics',
-            '-batchmode',
             '-createProject', projectPath,
         ];
 
