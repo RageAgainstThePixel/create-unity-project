@@ -8,24 +8,44 @@ async function main() {
         }
 
         const unityEditor = new UnityEditor(process.env.UNITY_EDITOR_PATH);
-        core.debug(`Using Unity Editor at path:\n  > ${unityEditor.editorPath}`);
-        const templatePath = unityEditor.GetTemplatePath(core.getInput('template-name'));
-        core.debug(`Using Unity template at path:\n  > ${templatePath}`);
+        core.info(`Using Unity Editor at path:\n  > ${unityEditor.editorPath}`);
+
+        let templatePath: string | undefined = undefined;
+
+        if (this.version.isGreaterThan('2018.0.0')) {
+            const availableTemplates = unityEditor.GetAvailableTemplates();
+            core.startGroup('Available Unity Project Templates:');
+
+            for (const template of availableTemplates) {
+                core.info(`  - ${template}`);
+            }
+
+            core.endGroup();
+            templatePath = unityEditor.GetTemplatePath(core.getInput('template-name'));
+            core.info(`Using Unity template at path:\n  > ${templatePath}`);
+        } else {
+            core.info('Unity Project Templates are not supported for Unity versions below 2018');
+        }
+
         const projectNameInput = core.getInput('project-name', { required: true });
         const projectDirectoryInput = core.getInput('project-directory') || process.cwd();
         const projectPath = `${projectDirectoryInput}/${projectNameInput}`;
-        core.debug(`Creating Unity project at:\n  > ${projectPath}`);
+        core.info(`Creating Unity project at:\n  > ${projectPath}`);
+
+        const args: string[] = [
+            '-quit',
+            '-nographics',
+            '-batchmode',
+            '-createProject', projectPath,
+        ];
+
+        if (templatePath) {
+            args.push('-projectTemplate', templatePath);
+        }
+
         const logPath = unityEditor.GenerateLogFilePath(projectPath, 'create-unity-project');
-        await unityEditor.Run({
-            args: [
-                '-quit',
-                '-nographics',
-                '-batchmode',
-                '-createProject', projectPath,
-                '-cloneFromTemplate', templatePath,
-                '-logFile', logPath
-            ]
-        });
+        args.push('-logFile', logPath);
+        await unityEditor.Run({ args: [...args] });
         core.setOutput('project-path', projectPath);
     } catch (error) {
         core.setFailed(error);
