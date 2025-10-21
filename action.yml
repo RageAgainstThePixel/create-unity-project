@@ -14,7 +14,7 @@ inputs:
   template-name:
     description: The name of the template package to use for creating the Unity project.
     required: false
-    default: 'com.unity.template.3d(-cross-platform)?'
+    default: 'com.unity.template.3d(-cross-platform|extra)?'
 outputs:
   project-path:
     description: The path to the created Unity project.
