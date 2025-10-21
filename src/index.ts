@@ -9,15 +9,13 @@ async function main() {
 
         const unityEditor = new UnityEditor(process.env.UNITY_EDITOR_PATH);
         core.debug(`Using Unity Editor at path:\n  > ${unityEditor.editorPath}`);
-
-        const templateNameInput = core.getInput('template-name');
-        const templatePath = unityEditor.GetTemplatePath(templateNameInput);
+        const templatePath = unityEditor.GetTemplatePath(core.getInput('template-name'));
         core.debug(`Using Unity template at path:\n  > ${templatePath}`);
-
         const projectNameInput = core.getInput('project-name', { required: true });
         const projectDirectoryInput = core.getInput('project-directory') || process.cwd();
         const projectPath = `${projectDirectoryInput}/${projectNameInput}`;
         core.debug(`Creating Unity project at:\n  > ${projectPath}`);
+        const logPath = unityEditor.GenerateLogFilePath(projectPath, 'create-unity-project');
         await unityEditor.Run({
             args: [
                 '-quit',
@@ -25,6 +23,7 @@ async function main() {
                 '-batchmode',
                 '-createProject', projectPath,
                 '-cloneFromTemplate', templatePath,
+                '-logFile', logPath
             ]
         });
         core.setOutput('project-path', projectPath);
