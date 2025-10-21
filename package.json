@@ -20,7 +20,7 @@
   "main": "dist/index.js",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@rage-against-the-pixel/unity-cli": "^1.4.2"
+    "@rage-against-the-pixel/unity-cli": "^1.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.18.12",
