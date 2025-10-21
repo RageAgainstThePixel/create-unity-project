@@ -1,3 +1,4 @@
+import path = require('path');
 import core = require('@actions/core');
 import { UnityEditor } from '@rage-against-the-pixel/unity-cli';
 
@@ -17,7 +18,7 @@ async function main() {
             core.startGroup('Available Unity Project Templates:');
 
             for (const template of availableTemplates) {
-                core.info(`  - ${template}`);
+                core.info(`  - ${path.basename(template)}`);
             }
 
             core.endGroup();

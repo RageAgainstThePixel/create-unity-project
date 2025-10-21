@@ -61387,6 +61387,7 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const path = __nccwpck_require__(1017);
 const core = __nccwpck_require__(2186);
 const unity_cli_1 = __nccwpck_require__(4858);
 async function main() {
@@ -61401,7 +61402,7 @@ async function main() {
             const availableTemplates = unityEditor.GetAvailableTemplates();
             core.startGroup('Available Unity Project Templates:');
             for (const template of availableTemplates) {
-                core.info(`  - ${template}`);
+                core.info(`  - ${path.basename(template)}`);
             }
             core.endGroup();
             templatePath = unityEditor.GetTemplatePath(core.getInput('template-name'));
