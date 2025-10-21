@@ -41,7 +41,9 @@ jobs:
         run: |
           npm install -g openupm-cli
           openupm add com.utilities.buildpipeline
-          ls -al
+          echo "::group::Generated Project Files:"
+          ls -Ral
+          echo "::endgroup::"
         working-directory: ${{ steps.unity-project.outputs.project-path }}
         shell: bash
       - uses: RageAgainstThePixel/unity-action@v2
