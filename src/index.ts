@@ -12,7 +12,7 @@ async function main() {
 
         let templatePath: string | undefined = undefined;
 
-        if (this.version.isGreaterThan('2018.0.0')) {
+        if (unityEditor.version.isGreaterThan('2019.0.0')) {
             const availableTemplates = unityEditor.GetAvailableTemplates();
             core.startGroup('Available Unity Project Templates:');
 
@@ -24,7 +24,7 @@ async function main() {
             templatePath = unityEditor.GetTemplatePath(core.getInput('template-name'));
             core.info(`Using Unity template at path:\n  > ${templatePath}`);
         } else {
-            core.info('Unity Project Templates are not supported for Unity versions below 2018');
+            core.info('Unity Project Templates are not supported for Unity versions prior to 2019');
         }
 
         const projectNameInput = core.getInput('project-name', { required: true });
