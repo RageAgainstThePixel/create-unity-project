@@ -61415,17 +61415,18 @@ async function main() {
         const projectDirectoryInput = core.getInput('project-directory') || process.cwd();
         const projectPath = `${projectDirectoryInput}/${projectNameInput}`;
         core.info(`Creating Unity project at:\n  > ${projectPath}`);
+        const logPath = unityEditor.GenerateLogFilePath(projectPath, 'create-unity-project');
         const args = [
+            `-logFile`, logPath,
+            '-automated',
             '-quit',
             '-nographics',
             '-batchmode',
             '-createProject', projectPath,
         ];
         if (templatePath) {
-            args.push('-projectTemplate', templatePath);
+            args.push('-cloneFromTemplate', templatePath);
         }
-        const logPath = unityEditor.GenerateLogFilePath(projectPath, 'create-unity-project');
-        args.push('-logFile', logPath);
         await unityEditor.Run({ args: [...args] });
         core.setOutput('project-path', projectPath);
     }
