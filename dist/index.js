@@ -61442,10 +61442,7 @@ async function main() {
         const logPath = unityEditor.GenerateLogFilePath(projectPath, 'create-unity-project');
         const args = [
             `-logFile`, logPath,
-            '-automated',
             '-quit',
-            '-nographics',
-            '-batchmode',
             '-createProject', projectPath,
         ];
         if (templatePath) {
