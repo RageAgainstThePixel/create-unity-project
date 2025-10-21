@@ -11,20 +11,20 @@ A GitHub Action to create a new Unity Project using a predefined template packag
 >
 > You can use [`unity-setup`](https://github.com/RageAgainstThePixel/unity-setup) action to install Unity Editor before using this action.
 
-- `UNITY_EDITOR_PATH` environment variable must be set to the path of the Unity Editor executable.
+***`UNITY_EDITOR_PATH` environment variable must be set to the path of the Unity Editor executable.***
 
 > [!IMPORTANT]
 > This action requires an active Unity license be available on the runner.
 >
 > You can use [`activate-unity-license`](https://github.com/RageAgainstThePixel/activate-unity-license) action to activate the Unity license before using this action.
 
-- A license activation for the Unity Editor must also be completed before using this action.
+***A license activation for the Unity Editor must also be completed before using this action.***
 
 ### workflow
 
 ```yaml
 steps:
-  - uses: RageAgainstThePixel/create-unity-project@v1
+  - uses: RageAgainstThePixel/create-unity-project@v2
     with:
       project-name: Test Project
       project-directory: ./Unity Project
