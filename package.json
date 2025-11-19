@@ -1,6 +1,6 @@
 {
   "name": "create-unity-project",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "A GitHub Action to create a new Unity Project using a predefined template package.",
   "author": "RageAgainstThePixel",
   "repository": {
@@ -20,7 +20,7 @@
   "main": "dist/index.js",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@rage-against-the-pixel/unity-cli": "^1.5.4"
+    "@rage-against-the-pixel/unity-cli": "^1.5.5"
   },
   "devDependencies": {
     "@types/node": "^22.19.1",
