@@ -24,7 +24,7 @@ A GitHub Action to create a new Unity Project using a predefined template packag
 
 ```yaml
 steps:
-  - uses: RageAgainstThePixel/create-unity-project@v2
+  - uses: RageAgainstThePixel/create-unity-project@v3
     with:
       project-name: Test Project
       project-directory: ./Unity Project
