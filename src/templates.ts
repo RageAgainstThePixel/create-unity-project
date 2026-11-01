@@ -52,10 +52,11 @@ export function GetTemplatePath(templates: string[], template: string): string |
     // Match the template name, an optional numeric version suffix, and a required file extension
     // Example input: com.unity.template.3d(-cross-platform)?
     // Example match: com.unity.template.3d-cross-platform-1.2.3.tar.gz or com.unity.template.3d-1.2.3.tgz
+    // the pattern is grouped so the anchors and suffix apply to every alternative, such as `a|b`
     let regex: RegExp;
 
     try {
-        regex = new RegExp(`^${template}(?:-\\d+\\.\\d+\\.\\d+)?(?:\\.tgz|\\.tar\\.gz)$`);
+        regex = new RegExp(`^(?:${template})(?:-\\d+\\.\\d+\\.\\d+)?(?:\\.tgz|\\.tar\\.gz)$`);
     } catch {
         throw new Error(`Invalid template regex: ${template}`);
     }

@@ -45186,7 +45186,7 @@ function GetTemplatePath(templates, template) {
     }
     let regex;
     try {
-        regex = new RegExp(`^${template}(?:-\\d+\\.\\d+\\.\\d+)?(?:\\.tgz|\\.tar\\.gz)$`);
+        regex = new RegExp(`^(?:${template})(?:-\\d+\\.\\d+\\.\\d+)?(?:\\.tgz|\\.tar\\.gz)$`);
     }
     catch (_a) {
         throw new Error(`Invalid template regex: ${template}`);
@@ -45575,6 +45575,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const path = __nccwpck_require__(1017);
 const core = __nccwpck_require__(2186);
 const unity_cli_1 = __nccwpck_require__(4858);
+const failure_markers_1 = __nccwpck_require__(8545);
 const templates_1 = __nccwpck_require__(5586);
 async function main() {
     try {
@@ -45614,7 +45615,12 @@ async function main() {
         core.setOutput('project-path', projectPath);
     }
     catch (error) {
-        core.setFailed(error instanceof Error ? error.message : String(error));
+        const message = error instanceof Error ? error.message : String(error);
+        const marker = (0, failure_markers_1.ClassifyFailure)(message);
+        if (marker) {
+            core.notice(`Retryable failure: ${message}`, { title: marker });
+        }
+        core.setFailed(message);
     }
 }
 main();

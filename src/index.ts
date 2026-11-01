@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as core from '@actions/core';
 import { UnityEditor } from '@rage-against-the-pixel/unity-cli';
+import { ClassifyFailure } from '@rage-against-the-pixel/unity-cli/dist/failure-markers';
 import { GetAvailableTemplates, GetTemplatePath } from './templates';
 
 async function main() {
@@ -48,7 +49,15 @@ async function main() {
         await unityEditor.Run({ args: [...args] });
         core.setOutput('project-path', projectPath);
     } catch (error: any) {
-        core.setFailed(error instanceof Error ? error.message : String(error));
+        const message = error instanceof Error ? error.message : String(error);
+        // a failure a rerun can clear gets a notice titled with its marker, which retry-failed-jobs looks for
+        const marker = ClassifyFailure(message);
+
+        if (marker) {
+            core.notice(`Retryable failure: ${message}`, { title: marker });
+        }
+
+        core.setFailed(message);
     }
 }
 

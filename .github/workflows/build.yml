@@ -41,11 +41,25 @@ jobs:
       - uses: actions/checkout@v7
       - name: Wait for Free Disk Space
         wait: free-disk-space
-      - uses: RageAgainstThePixel/unity-setup@v2
+      - uses: actions/setup-node@v7
         with:
-          version-file: None
-          build-targets: ${{ matrix.build-target }}
-          unity-version: ${{ matrix.unity-version }}
+          node-version: 24.x
+          cache: npm
+      # installs the editor with the unity-cli this action bundles; unity-setup@v2 still carries a unity-cli that
+      # can't find Unity Hub 3.20+ on Linux
+      - name: Setup Unity
+        shell: bash
+        timeout-minutes: 30
+        env:
+          MATRIX_UNITY_VERSION: ${{ matrix.unity-version }}
+          MATRIX_BUILD_TARGET: ${{ matrix.build-target }}
+        run: |
+          set -euo pipefail
+          npm ci
+          echo "${GITHUB_WORKSPACE}/node_modules/.bin" >> "${GITHUB_PATH}"
+          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
+          unity-cli upm-install --json
+          unity-cli setup-unity --unity-version "${MATRIX_UNITY_VERSION}" --build-targets "${MATRIX_BUILD_TARGET}" --json
       # macOS and Linux runners all report the same machine identity to Unity, so the license the license job activated
       # once for this run serves every macOS or Linux row; it arrives as an encrypted artifact and is never returned.
       # Without it, or when it no longer fits this machine, the row activates with the account. Windows runners are a
@@ -92,6 +106,12 @@ jobs:
         id: unity-project
         with:
           project-name: Test Project
+      - name: Install Android dependencies
+        if: ${{ matrix.build-target == 'Android' }}
+        shell: bash
+        env:
+          PROJECT_PATH: ${{ steps.unity-project.outputs.project-path }}
+        run: unity-cli setup-unity -p "${PROJECT_PATH}" -m android
       - name: Disable WebGL Compression
         # Brotli on the .wasm takes minutes per build and the tests never serve the player, so it only costs job time
         if: ${{ matrix.build-target == 'WebGL' }}
