@@ -7,6 +7,10 @@ on:
       matrix:
         required: true
         type: string
+      allow-security-alert:
+        required: false
+        type: boolean
+        default: false
     secrets:
       UNITY_USERNAME:
         required: true
@@ -27,6 +31,10 @@ jobs:
       fail-fast: false
     permissions:
       contents: read
+    env:
+      # the monthly run installs the older editors, which mostly carry a Unity Security Alert; the bundled unity-cli
+      # installs them with a warning instead of an error when this is set
+      UNITY_ALLOW_SECURITY_ALERT: ${{ inputs.allow-security-alert }}
     steps:
       # runs alongside checkout; the wait before the editor install joins it
       - name: Free Disk Space
