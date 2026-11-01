@@ -56,10 +56,8 @@ jobs:
         run: |
           set -euo pipefail
           npm ci
-          echo "${GITHUB_WORKSPACE}/node_modules/.bin" >> "${GITHUB_PATH}"
-          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
-          unity-cli upm-install --json
-          unity-cli setup-unity --unity-version "${MATRIX_UNITY_VERSION}" --build-targets "${MATRIX_BUILD_TARGET}" --json
+          npx --no-install unity-cli upm-install --json
+          npx --no-install unity-cli setup-unity --unity-version "${MATRIX_UNITY_VERSION}" --build-targets "${MATRIX_BUILD_TARGET}" --json
       # macOS and Linux runners all report the same machine identity to Unity, so the license the license job activated
       # once for this run serves every macOS or Linux row; it arrives as an encrypted artifact and is never returned.
       # Without it, or when it no longer fits this machine, the row activates with the account. Windows runners are a
@@ -111,7 +109,27 @@ jobs:
         shell: bash
         env:
           PROJECT_PATH: ${{ steps.unity-project.outputs.project-path }}
-        run: unity-cli setup-unity -p "${PROJECT_PATH}" -m android
+        run: npx --no-install unity-cli setup-unity -p "${PROJECT_PATH}" -m android
+      # unity-action@v3 sets UNITY_THISISABUILDMACHINE, so the generated Gradle project lists Unity's internal Artifactory
+      # first; its host does not resolve outside Unity, and Gradle fails the plugin lookup instead of moving on to Google's
+      - name: Drop Unity-internal Gradle repositories
+        if: ${{ matrix.build-target == 'Android' }}
+        shell: bash
+        run: |
+          mkdir -p "${HOME}/.gradle/init.d"
+          cat > "${HOME}/.gradle/init.d/drop-unity-internal-repos.gradle" <<'EOF'
+          def isInternal = { repo -> repo instanceof MavenArtifactRepository && (repo.url?.host ?: '').endsWith('.bf.unity3d.com') }
+          def drop = { repos, where ->
+              repos.findAll(isInternal).each { repo ->
+                  println "Dropped the Unity-internal repository ${repo.url} from ${where}"
+                  repos.remove(repo)
+              }
+          }
+          settingsEvaluated { settings ->
+              drop(settings.pluginManagement.repositories, 'pluginManagement')
+              drop(settings.dependencyResolutionManagement.repositories, 'dependencyResolutionManagement')
+          }
+          EOF
       - name: Disable WebGL Compression
         # Brotli on the .wasm takes minutes per build and the tests never serve the player, so it only costs job time
         if: ${{ matrix.build-target == 'WebGL' }}
