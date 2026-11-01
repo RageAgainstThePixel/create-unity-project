@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as core from '@actions/core';
 import { UnityEditor } from '@rage-against-the-pixel/unity-cli';
+import { GetAvailableTemplates, GetTemplatePath } from './templates';
 
 async function main() {
     try {
@@ -14,7 +15,7 @@ async function main() {
         let templatePath: string | undefined = undefined;
 
         if (unityEditor.version.isGreaterThan('2019.0.0')) {
-            const availableTemplates = unityEditor.GetAvailableTemplates();
+            const availableTemplates = GetAvailableTemplates(unityEditor);
             core.startGroup('Available Unity Project Templates:');
 
             for (const template of availableTemplates) {
@@ -22,7 +23,7 @@ async function main() {
             }
 
             core.endGroup();
-            templatePath = unityEditor.GetTemplatePath(core.getInput('template-name'));
+            templatePath = GetTemplatePath(availableTemplates, core.getInput('template-name'));
             core.info(`Using Unity template at path:\n  > ${templatePath}`);
         } else {
             core.info('Unity Project Templates are not supported for Unity versions prior to 2019');
