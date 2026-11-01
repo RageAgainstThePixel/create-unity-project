@@ -44,4 +44,9 @@ steps:
 
 ### outputs
 
-- `project-path`: The path to the created Unity project. This is the absolute path to the project directory.
+- `project-path`: The path to the created Unity project, `<project-directory>/<project-name>`. It is relative when `project-directory` is relative.
+
+### notes
+
+- Templates are only used with Unity 2019 and newer. When no template matches `template-name`, the action warns and creates the project without one.
+- When creation fails for a reason a rerun can fix, the action adds a notice titled `unity-license-exhausted` or `unity-transient-failure` for [retry-failed-jobs](https://github.com/RageAgainstThePixel/retry-failed-jobs).
