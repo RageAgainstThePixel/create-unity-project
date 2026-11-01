@@ -50,3 +50,4 @@ steps:
 
 - Templates are only used with Unity 2019 and newer. When no template matches `template-name`, the action warns and creates the project without one.
 - When creation fails for a reason a rerun can fix, the action adds a notice titled `unity-license-exhausted` or `unity-transient-failure` for [retry-failed-jobs](https://github.com/RageAgainstThePixel/retry-failed-jobs).
+- CI tests pull requests against the Unity streams the official Unity CLI lists, and a monthly run covers the older editor lines.
