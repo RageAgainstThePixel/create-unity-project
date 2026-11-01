@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import * as core from '@actions/core';
 import { UnityEditor } from '@rage-against-the-pixel/unity-cli';
@@ -46,7 +47,17 @@ async function main() {
             args.push('-cloneFromTemplate', templatePath);
         }
 
-        await unityEditor.Run({ args: [...args] });
+        try {
+            await unityEditor.Run({ args: [...args] });
+        } catch (error) {
+            // some editors, such as 6000.0 on Linux, crash while shutting down after the project is already created
+            if (!projectCreated(projectPath, logPath)) {
+                throw error;
+            }
+
+            core.warning(`Unity exited with an error after creating the project, which is kept:\n${error instanceof Error ? error.message : String(error)}`);
+        }
+
         core.setOutput('project-path', projectPath);
     } catch (error: any) {
         const message = error instanceof Error ? error.message : String(error);
@@ -58,6 +69,20 @@ async function main() {
         }
 
         core.setFailed(message);
+    }
+}
+
+/**
+ * Whether the editor finished creating the project: it wrote the project version and reached its batchmode quit.
+ * @param projectPath The path of the created project.
+ * @param logPath The editor log of the create run.
+ */
+function projectCreated(projectPath: string, logPath: string): boolean {
+    try {
+        return fs.existsSync(path.join(projectPath, 'ProjectSettings', 'ProjectVersion.txt')) &&
+            fs.readFileSync(logPath, 'utf8').includes('Batchmode quit successfully invoked');
+    } catch {
+        return false;
     }
 }
 

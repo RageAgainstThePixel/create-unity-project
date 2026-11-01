@@ -45572,6 +45572,7 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const fs = __nccwpck_require__(7147);
 const path = __nccwpck_require__(1017);
 const core = __nccwpck_require__(2186);
 const unity_cli_1 = __nccwpck_require__(4858);
@@ -45611,7 +45612,15 @@ async function main() {
         if (templatePath) {
             args.push('-cloneFromTemplate', templatePath);
         }
-        await unityEditor.Run({ args: [...args] });
+        try {
+            await unityEditor.Run({ args: [...args] });
+        }
+        catch (error) {
+            if (!projectCreated(projectPath, logPath)) {
+                throw error;
+            }
+            core.warning(`Unity exited with an error after creating the project, which is kept:\n${error instanceof Error ? error.message : String(error)}`);
+        }
         core.setOutput('project-path', projectPath);
     }
     catch (error) {
@@ -45621,6 +45630,15 @@ async function main() {
             core.notice(`Retryable failure: ${message}`, { title: marker });
         }
         core.setFailed(message);
+    }
+}
+function projectCreated(projectPath, logPath) {
+    try {
+        return fs.existsSync(path.join(projectPath, 'ProjectSettings', 'ProjectVersion.txt')) &&
+            fs.readFileSync(logPath, 'utf8').includes('Batchmode quit successfully invoked');
+    }
+    catch (_a) {
+        return false;
     }
 }
 main();
