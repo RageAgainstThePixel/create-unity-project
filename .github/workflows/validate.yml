@@ -55,7 +55,7 @@ jobs:
       - run: npm ci
       - name: Activate License
         id: activate
-        shell: pwsh
+        shell: bash
         env:
           UNITY_USERNAME: ${{ secrets.UNITY_USERNAME }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
@@ -63,22 +63,32 @@ jobs:
           # nobody a way to test password guesses offline
           CI_TOKEN: ${{ secrets.CI_TOKEN }}
         run: |
-          if (-not $env:UNITY_USERNAME -or -not $env:UNITY_PASSWORD -or -not $env:CI_TOKEN) {
+          set -euo pipefail
+          if [ -z "${UNITY_USERNAME}" ] || [ -z "${UNITY_PASSWORD}" ] || [ -z "${CI_TOKEN}" ]; then
             # pull requests from forks get no secrets; their rows fall back to their own activation
             echo '::warning::No Unity credentials or CI_TOKEN, so this run has no shared license'
             exit 0
-          }
-          npx --no-install unity-cli upm-install --json
-          npx --no-install unity-cli license-context
-          npx --no-install unity-cli activate-license --license personal
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $dir = Join-Path $env:RUNNER_TEMP 'unity-license'
-          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          fi
+          # the unity-cli this action bundles
+          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
+          unity-cli upm-install --json
+          # license-context runs after, only to explain a failure
+          code=0
+          unity-cli activate-license --license personal || code=$?
+          if [ "${code}" -ne 0 ]; then
+            unity-cli license-context || true
+            exit "${code}"
+          fi
+          dir="${RUNNER_TEMP}/unity-license"
+          mkdir -p "${dir}"
+          license_file="$(unity-cli license-file-path)"
           # the key never reaches a command line: openssl reads it from the environment
-          $env:LICENSE_KEY = "$($env:CI_TOKEN):$($env:GITHUB_RUN_ID)"
-          openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -in (npx --no-install unity-cli license-file-path) -out (Join-Path $dir 'unity-license.enc') -pass env:LICENSE_KEY
-          if ($LASTEXITCODE -ne 0) { throw 'Could not encrypt the run license' }
-          "encrypted=true" >> $env:GITHUB_OUTPUT
+          export LICENSE_KEY="${CI_TOKEN}:${GITHUB_RUN_ID}"
+          if ! openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -in "${license_file}" -out "${dir}/unity-license.enc" -pass env:LICENSE_KEY; then
+            echo 'Could not encrypt the run license' >&2
+            exit 1
+          fi
+          echo "encrypted=true" >> "${GITHUB_OUTPUT}"
       - uses: actions/upload-artifact@v7
         if: ${{ steps.activate.outputs.encrypted == 'true' }}
         with:
@@ -109,17 +119,24 @@ jobs:
       actions: write # to delete this run's license artifacts
     steps:
       - name: Delete the run license
-        shell: pwsh
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $ids = gh api "repos/$($env:GITHUB_REPOSITORY)/actions/runs/$($env:GITHUB_RUN_ID)/artifacts?per_page=100" --paginate --jq '.artifacts[] | select(.name | startswith("unity-license-")) | .id'
-          if ($LASTEXITCODE -ne 0) { throw 'Could not list the run artifacts' }
-          foreach ($id in $ids) {
-            gh api -X DELETE "repos/$($env:GITHUB_REPOSITORY)/actions/artifacts/$id"
-            if ($LASTEXITCODE -ne 0) { throw "Could not delete artifact $id" }
-          }
-          echo "Deleted $(@($ids).Count) license artifacts"
+          set -euo pipefail
+          if ! ids="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100" --paginate --jq '.artifacts[] | select(.name | startswith("unity-license-")) | .id')"; then
+            echo 'Could not list the run artifacts' >&2
+            exit 1
+          fi
+          count=0
+          for id in ${ids}; do
+            if ! gh api -X DELETE "repos/${GITHUB_REPOSITORY}/actions/artifacts/${id}"; then
+              echo "Could not delete artifact ${id}" >&2
+              exit 1
+            fi
+            count=$((count + 1))
+          done
+          echo "Deleted ${count} license artifacts"
   timeline:
     needs: [setup, validate]
     if: always()
