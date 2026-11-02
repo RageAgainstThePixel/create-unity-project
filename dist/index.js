@@ -45333,7 +45333,20 @@ function MatchTemplate(ids, prefixes) {
     return undefined;
 }
 async function ListTemplates(cli, unityEditor) {
-    const templates = await cli.ExecJson(['templates', 'list', '--editor', unityEditor.version.version, '--non-interactive']);
+    var _a, _b;
+    const version = unityEditor.version.version;
+    let args = ['templates', '--editor-version', version, '--non-interactive'];
+    let result = await cli.RunJson(args);
+    if (result.exitCode === 2) {
+        args = ['templates', 'list', '--editor', version, '--non-interactive'];
+        result = await cli.RunJson(args);
+    }
+    const { exitCode, envelope, stdout, stderr } = result;
+    if (exitCode !== 0 || !envelope || envelope.success === false) {
+        const errors = ((_a = envelope === null || envelope === void 0 ? void 0 : envelope.errors) === null || _a === void 0 ? void 0 : _a.map(e => `${e.code}: ${e.message}`).join('\n')) || `${stdout}\n${stderr}`.trim();
+        throw new Error(`unity ${args.join(' ')} failed with exit code ${exitCode}\n${errors}`);
+    }
+    const templates = Array.isArray(envelope.data) ? envelope.data : (_b = envelope.data) === null || _b === void 0 ? void 0 : _b.items;
     return (templates !== null && templates !== void 0 ? templates : [])
         .filter(t => !!t.type)
         .map(t => t.name || t.id)

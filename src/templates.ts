@@ -64,7 +64,25 @@ export function MatchTemplate(ids: string[], prefixes: string[]): string | undef
  * @throws If the templates could not be listed.
  */
 export async function ListTemplates(cli: UnityCli, unityEditor: UnityEditor): Promise<string[]> {
-    const templates = await cli.ExecJson<UnityTemplate[]>(['templates', 'list', '--editor', unityEditor.version.version, '--non-interactive']);
+    const version = unityEditor.version.version;
+    let args = ['templates', '--editor-version', version, '--non-interactive'];
+    let result = await cli.RunJson<UnityTemplate[] | { items?: UnityTemplate[] }>(args);
+
+    // CLI 1.0.0-beta.14 and older list with `templates list --editor` and exit with 2 on the newer form
+    if (result.exitCode === 2) {
+        args = ['templates', 'list', '--editor', version, '--non-interactive'];
+        result = await cli.RunJson<UnityTemplate[] | { items?: UnityTemplate[] }>(args);
+    }
+
+    const { exitCode, envelope, stdout, stderr } = result;
+
+    if (exitCode !== 0 || !envelope || envelope.success === false) {
+        const errors = envelope?.errors?.map(e => `${e.code}: ${e.message}`).join('\n') || `${stdout}\n${stderr}`.trim();
+        throw new Error(`unity ${args.join(' ')} failed with exit code ${exitCode}\n${errors}`);
+    }
+
+    // newer CLIs wrap the list in `items`
+    const templates = Array.isArray(envelope.data) ? envelope.data : envelope.data?.items;
     return (templates ?? [])
         // entries without a type, such as 7000.0's 3d and 2d at version 0.0.0, are the Hub's blank projects, not template packages
         .filter(t => !!t.type)
