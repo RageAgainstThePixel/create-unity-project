@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as core from '@actions/core';
 import { FindAbsolutePath, UnityCli, UnityEditor } from '@rage-against-the-pixel/unity-cli';
 import { ClassifyFailure } from '@rage-against-the-pixel/unity-cli/dist/failure-markers';
-import { GetBundledTemplateId, GetBundledTemplates, ListTemplates, MatchTemplate, ParseTemplatePrefixes } from './templates';
+import { GetBundledTemplateId, GetBundledTemplates, MatchTemplate, ParseTemplatePrefixes } from './templates';
 
 async function main() {
     try {
@@ -52,7 +52,7 @@ async function createProject(unityEditor: UnityEditor, projectDirectory: string,
     const cli = await UnityCli.Get();
     await registerEditor(cli, unityEditor);
 
-    const templates = await ListTemplates(cli, unityEditor);
+    const templates = await cli.ListTemplates(unityEditor.version.version);
     core.startGroup('Available Unity Project Templates:');
 
     for (const template of templates) {

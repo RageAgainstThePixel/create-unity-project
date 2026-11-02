@@ -1,15 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as core from '@actions/core';
-import { UnityCli, UnityEditor } from '@rage-against-the-pixel/unity-cli';
-
-/** A template entry from `unity templates list --format json`. */
-interface UnityTemplate {
-    name?: string;
-    id?: string;
-    type?: string;
-    version?: string;
-}
+import { UnityEditor } from '@rage-against-the-pixel/unity-cli';
 
 /**
  * Parse the template-name input into an ordered list of template id prefixes.
@@ -83,40 +75,6 @@ export function MatchTemplate(ids: string[], prefixes: string[]): string | undef
     }
 
     return undefined;
-}
-
-/**
- * Get the ids of the project templates the official Unity CLI offers for an editor version.
- * @param cli The official Unity CLI.
- * @param unityEditor The Unity Editor the project is created with.
- * @returns The template ids, in the order they were listed.
- * @throws If the templates could not be listed.
- */
-export async function ListTemplates(cli: UnityCli, unityEditor: UnityEditor): Promise<string[]> {
-    const version = unityEditor.version.version;
-    let args = ['templates', '--editor-version', version, '--non-interactive'];
-    let result = await cli.RunJson<UnityTemplate[] | { items?: UnityTemplate[] }>(args);
-
-    // CLI 1.0.0-beta.14 and older list with `templates list --editor` and exit with 2 on the newer form
-    if (result.exitCode === 2) {
-        args = ['templates', 'list', '--editor', version, '--non-interactive'];
-        result = await cli.RunJson<UnityTemplate[] | { items?: UnityTemplate[] }>(args);
-    }
-
-    const { exitCode, envelope, stdout, stderr } = result;
-
-    if (exitCode !== 0 || !envelope || envelope.success === false) {
-        const errors = envelope?.errors?.map(e => `${e.code}: ${e.message}`).join('\n') || `${stdout}\n${stderr}`.trim();
-        throw new Error(`unity ${args.join(' ')} failed with exit code ${exitCode}\n${errors}`);
-    }
-
-    // newer CLIs wrap the list in `items`
-    const templates = Array.isArray(envelope.data) ? envelope.data : envelope.data?.items;
-    return (templates ?? [])
-        // entries without a type, such as 7000.0's 3d and 2d at version 0.0.0, are the Hub's blank projects, not template packages
-        .filter(t => !!t.type)
-        .map(t => t.name || t.id)
-        .filter((id): id is string => !!id);
 }
 
 /**

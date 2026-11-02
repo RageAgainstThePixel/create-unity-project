@@ -6705,6 +6705,34 @@ class UnityCli {
         }
         return envelope.data;
     }
+    /**
+     * The arguments that list the project templates for an editor: `templates --editor-version <version>`, or
+     * `templates list --editor <version>` for CLI 1.0.0-beta.14 and older, which have no `--editor-version` on `templates`.
+     * @param editorVersion The editor version to list templates for. Omitted, the CLI uses its stored default.
+     */
+    TemplatesListArgs(editorVersion = undefined) {
+        const legacy = (0, semver_1.valid)(this.version) !== null && (0, semver_1.compare)(this.version, '1.0.0-beta.15') < 0;
+        if (legacy) {
+            return ['templates', 'list', ...(editorVersion ? ['--editor', editorVersion] : [])];
+        }
+        return ['templates', ...(editorVersion ? ['--editor-version', editorVersion] : [])];
+    }
+    /**
+     * Lists the ids of the project templates the CLI offers for an editor, with the syntax this CLI version takes.
+     * @param editorVersion The editor version to list templates for. Omitted, the CLI uses its stored default.
+     * @returns The template ids, such as `com.unity.template.3d`, in the order they were listed.
+     * @throws If the templates could not be listed.
+     */
+    async ListTemplates(editorVersion = undefined) {
+        const data = await this.ExecJson(this.TemplatesListArgs(editorVersion));
+        // CLI 1.0.0-beta.15 and newer wrap the list in items
+        const templates = Array.isArray(data) ? data : data?.items;
+        return (templates ?? [])
+            // entries without a type, such as 7000.0's 3d and 2d at version 0.0.0, are the Hub's blank projects, not template packages
+            .filter(t => !!t.type)
+            .map(t => t.name || t.id)
+            .filter((id) => !!id);
+    }
     /** Gets the directory the CLI installs editors to. */
     async GetInstallPath() {
         const data = await this.ExecJson(['install-path', '--get']);
@@ -45301,7 +45329,6 @@ module.exports = {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ParseTemplatePrefixes = ParseTemplatePrefixes;
 exports.MatchTemplate = MatchTemplate;
-exports.ListTemplates = ListTemplates;
 exports.GetBundledTemplates = GetBundledTemplates;
 exports.GetBundledTemplateId = GetBundledTemplateId;
 const fs = __nccwpck_require__(7147);
@@ -45352,26 +45379,6 @@ function MatchTemplate(ids, prefixes) {
         }
     }
     return undefined;
-}
-async function ListTemplates(cli, unityEditor) {
-    var _a, _b;
-    const version = unityEditor.version.version;
-    let args = ['templates', '--editor-version', version, '--non-interactive'];
-    let result = await cli.RunJson(args);
-    if (result.exitCode === 2) {
-        args = ['templates', 'list', '--editor', version, '--non-interactive'];
-        result = await cli.RunJson(args);
-    }
-    const { exitCode, envelope, stdout, stderr } = result;
-    if (exitCode !== 0 || !envelope || envelope.success === false) {
-        const errors = ((_a = envelope === null || envelope === void 0 ? void 0 : envelope.errors) === null || _a === void 0 ? void 0 : _a.map(e => `${e.code}: ${e.message}`).join('\n')) || `${stdout}\n${stderr}`.trim();
-        throw new Error(`unity ${args.join(' ')} failed with exit code ${exitCode}\n${errors}`);
-    }
-    const templates = Array.isArray(envelope.data) ? envelope.data : (_b = envelope.data) === null || _b === void 0 ? void 0 : _b.items;
-    return (templates !== null && templates !== void 0 ? templates : [])
-        .filter(t => !!t.type)
-        .map(t => t.name || t.id)
-        .filter((id) => !!id);
 }
 function GetBundledTemplates(unityEditor) {
     const editorRoot = path.dirname(unityEditor.editorPath);
@@ -45802,7 +45809,7 @@ async function main() {
 async function createProject(unityEditor, projectDirectory, projectName, projectPath, prefixes) {
     const cli = await unity_cli_1.UnityCli.Get();
     await registerEditor(cli, unityEditor);
-    const templates = await (0, templates_1.ListTemplates)(cli, unityEditor);
+    const templates = await cli.ListTemplates(unityEditor.version.version);
     core.startGroup('Available Unity Project Templates:');
     for (const template of templates) {
         core.info(`  - ${template}`);
