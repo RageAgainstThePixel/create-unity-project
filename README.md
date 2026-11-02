@@ -1,6 +1,6 @@
 # create-unity-project
 
-A GitHub Action to create a new Unity Project using a predefined template package.
+A GitHub Action to create a new Unity Project from a Unity project template, using the official [Unity CLI](https://docs.unity.com/en-us/cli).
 
 ## How to use
 
@@ -24,11 +24,11 @@ A GitHub Action to create a new Unity Project using a predefined template packag
 
 ```yaml
 steps:
-  - uses: RageAgainstThePixel/create-unity-project@v3
+  - uses: RageAgainstThePixel/create-unity-project@v4
     with:
       project-name: Test Project
       project-directory: ./Unity Project
-      template-name: com.unity.template.3d(-cross-platform)?
+      template-name: com.unity.template.3d, com.unity.template.urp-blank
 ```
 
 ### inputs
@@ -37,10 +37,10 @@ steps:
 | ---- | ----------- | -------- |
 | `project-name` | The name of the Unity project to create. | true |
 | `project-directory` | The directory where the Unity project will be created.  | Defaults to the root of the workspace. |
-| `template-name` | The name of the template package to use for creating the Unity project. | Default: `com.unity.template.3d(-cross-platform)?` |
+| `template-name` | A comma or newline separated list of template id prefixes, in order of preference. | Default: `com.unity.template.3d, com.unity.template.urp-blank` |
 
 > [!NOTE]
-> `template-name` supports regex patterns, allowing you to match multiple template packages. For example, `com.unity.template.3d(-cross-platform)?` will match both `com.unity.template.3d` and `com.unity.template.3d-cross-platform`.
+> The action lists the templates the official Unity CLI offers for the editor (`unity templates list --editor <version>`) and uses the first entry of `template-name` that matches one, either exactly or as the start of its id. Newer editors such as 7000.0 have no `com.unity.template.3d`, so the default falls back to `com.unity.template.urp-blank`. When no entry matches, the action fails and lists the available template ids.
 
 ### outputs
 
@@ -48,5 +48,7 @@ steps:
 
 ### notes
 
-- Templates are only used with Unity 2019 and newer. When no template matches `template-name`, the action warns and creates the project without one.
+- Unity 2019.1 and newer create the project with `unity projects create`. The editor at `UNITY_EDITOR_PATH` is registered with the Unity CLI first if it is not already.
+- Older editors create the project with the editor's `-createProject`, from a template bundled with the editor that matches `template-name`, or without a template when none does.
+- v3 regex patterns are no longer supported. An entry such as `com.unity.template.3d(-cross-platform)?` is matched by its leading id, `com.unity.template.3d`, with a warning.
 - When creation fails for a reason a rerun can fix, the action adds a notice titled `unity-license-exhausted` or `unity-transient-failure` for [retry-failed-jobs](https://github.com/RageAgainstThePixel/retry-failed-jobs).
