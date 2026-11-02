@@ -45817,6 +45817,7 @@ async function createProject(unityEditor, projectDirectory, projectName, project
     }
     core.info(`Using Unity template:\n  > ${templateId}`);
     core.info(`Creating Unity project at:\n  > ${projectPath}`);
+    await fs.promises.mkdir(path.resolve(projectDirectory), { recursive: true });
     const args = [
         'projects', 'create', projectName,
         '--path', path.resolve(projectDirectory),

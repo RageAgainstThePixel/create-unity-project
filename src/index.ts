@@ -73,6 +73,8 @@ async function createProject(unityEditor: UnityEditor, projectDirectory: string,
 
     core.info(`Using Unity template:\n  > ${templateId}`);
     core.info(`Creating Unity project at:\n  > ${projectPath}`);
+    // the Unity CLI creates the project folder but needs its parent to exist, which the editor's -createProject created
+    await fs.promises.mkdir(path.resolve(projectDirectory), { recursive: true });
     const args = [
         'projects', 'create', projectName,
         '--path', path.resolve(projectDirectory),
