@@ -45310,7 +45310,7 @@ const core = __nccwpck_require__(2186);
 function ParseTemplatePrefixes(input) {
     var _a;
     const prefixes = [];
-    for (const entry of input.split(/[,\n]/).map(e => e.trim()).filter(e => e.length > 0)) {
+    for (const entry of splitEntries(input).map(e => e.trim()).filter(e => e.length > 0)) {
         const prefix = (_a = /^[\w.-]+/.exec(entry)) === null || _a === void 0 ? void 0 : _a[0];
         if (!prefix) {
             throw new Error(`Invalid template name: ${entry}. Use a template id such as com.unity.template.3d.`);
@@ -45321,6 +45321,27 @@ function ParseTemplatePrefixes(input) {
         prefixes.push(prefix);
     }
     return prefixes;
+}
+function splitEntries(input) {
+    const entries = [];
+    let depth = 0;
+    let current = '';
+    for (const char of input) {
+        if ('([{'.includes(char)) {
+            depth++;
+        }
+        else if (')]}'.includes(char)) {
+            depth = Math.max(0, depth - 1);
+        }
+        else if (depth === 0 && ',\n|'.includes(char)) {
+            entries.push(current);
+            current = '';
+            continue;
+        }
+        current += char;
+    }
+    entries.push(current);
+    return entries;
 }
 function MatchTemplate(ids, prefixes) {
     var _a;

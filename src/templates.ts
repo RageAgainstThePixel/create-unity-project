@@ -13,14 +13,14 @@ interface UnityTemplate {
 
 /**
  * Parse the template-name input into an ordered list of template id prefixes.
- * @param input A comma or newline separated list, such as `com.unity.template.3d, com.unity.template.urp-blank`.
+ * @param input A comma, newline or `|` separated list, such as `com.unity.template.3d, com.unity.template.urp-blank`.
  * @returns The prefixes, in the order they were given.
  * @throws If an entry has no template id in it.
  */
 export function ParseTemplatePrefixes(input: string): string[] {
     const prefixes: string[] = [];
 
-    for (const entry of input.split(/[,\n]/).map(e => e.trim()).filter(e => e.length > 0)) {
+    for (const entry of splitEntries(input).map(e => e.trim()).filter(e => e.length > 0)) {
         // v3 took a regex; its leading literal part, such as com.unity.template.3d, is matched as an id prefix
         const prefix = /^[\w.-]+/.exec(entry)?.[0];
 
@@ -36,6 +36,35 @@ export function ParseTemplatePrefixes(input: string): string[] {
     }
 
     return prefixes;
+}
+
+/**
+ * Split the template-name input on commas, newlines and `|`, outside of brackets, so a v3 alternation such as
+ * `com.unity.template.3d|com.unity.template.urp-blank` keeps its fallbacks and `x{1,2}` stays one entry.
+ * @param input The template-name input.
+ * @returns The entries, untrimmed.
+ */
+function splitEntries(input: string): string[] {
+    const entries: string[] = [];
+    let depth = 0;
+    let current = '';
+
+    for (const char of input) {
+        if ('([{'.includes(char)) {
+            depth++;
+        } else if (')]}'.includes(char)) {
+            depth = Math.max(0, depth - 1);
+        } else if (depth === 0 && ',\n|'.includes(char)) {
+            entries.push(current);
+            current = '';
+            continue;
+        }
+
+        current += char;
+    }
+
+    entries.push(current);
+    return entries;
 }
 
 /**
